@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: gemini-web2api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: COOKIE
+        sync: false # Render will prompt you to enter your private cookie securely in the dashboard
