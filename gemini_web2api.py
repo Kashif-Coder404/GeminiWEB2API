@@ -155,6 +155,12 @@ def load_cookie() -> tuple:
             data = json.loads(content)
             cookie_str = data.get("cookie", "")
             sapisid = data.get("sapisid", "")
+            if data.get("xsrf_token") and not CONFIG.get("xsrf_token"):
+                CONFIG["xsrf_token"] = data["xsrf_token"]
+            if data.get("gemini_bl") and CONFIG.get("gemini_bl") == DEFAULT_CONFIG["gemini_bl"]:
+                CONFIG["gemini_bl"] = data["gemini_bl"]
+            if data.get("auth_user") and not CONFIG.get("auth_user"):
+                CONFIG["auth_user"] = data["auth_user"]
         else:
             cookie_str = content
             pairs = dict(p.split("=", 1) for p in cookie_str.split("; ") if "=" in p)
@@ -1116,8 +1122,19 @@ def main():
     elif os.environ.get("PROXY") or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY"):
         CONFIG["proxy"] = os.environ.get("PROXY") or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
 
+    xsrf = os.environ.get("XSRF_TOKEN") or os.environ.get("xsrf_token")
+    if xsrf:
+        CONFIG["xsrf_token"] = xsrf
+
+    auth_u = os.environ.get("AUTH_USER") or os.environ.get("auth_user")
+    if auth_u:
+        CONFIG["auth_user"] = auth_u
+
     new_bl = fetch_latest_bl()
-    if new_bl:
+    bl_env = os.environ.get("GEMINI_BL") or os.environ.get("gemini_bl")
+    if bl_env:
+        CONFIG["gemini_bl"] = bl_env
+    elif new_bl:
         CONFIG["gemini_bl"] = new_bl
 
     class ThreadedServer(ThreadingMixIn, HTTPServer):
@@ -1128,7 +1145,7 @@ def main():
     server = ThreadedServer((CONFIG["host"], port), GeminiHandler)
     cookie_str, _ = load_cookie()
     if os.environ.get("COOKIE") or os.environ.get("GEMINI_COOKIE"):
-        cookie_info = "yes (.env)"
+        cookie_info = "yes (.env / env)"
     elif CONFIG.get("cookie_file"):
         cookie_info = f"yes ({CONFIG['cookie_file']})"
     elif cookie_str:
@@ -1141,6 +1158,7 @@ def main():
     print(f"  Base URL:  http://localhost:{port}/v1")
     print(f"  Models:    {', '.join(MODELS.keys())}")
     print(f"  Cookie:    {cookie_info}")
+    print(f"  XSRF:      {'yes' if CONFIG.get('xsrf_token') else 'none'}")
     print(f"  Proxy:     {CONFIG.get('proxy') or 'none (uses system env HTTP_PROXY/HTTPS_PROXY)'}")
     print(f"  Retry:     {CONFIG['retry_attempts']}x / {CONFIG['retry_delay_sec']}s")
     print(f"  BL:        {CONFIG['gemini_bl']}")

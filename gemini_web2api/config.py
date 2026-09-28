@@ -20,6 +20,15 @@ DEFAULT_CONFIG = {
 }
 
 CONFIG = dict(DEFAULT_CONFIG)
+xsrf = os.environ.get("XSRF_TOKEN") or os.environ.get("xsrf_token")
+if xsrf:
+    CONFIG["xsrf_token"] = xsrf
+bl_env = os.environ.get("GEMINI_BL") or os.environ.get("gemini_bl")
+if bl_env:
+    CONFIG["gemini_bl"] = bl_env
+auth_u = os.environ.get("AUTH_USER") or os.environ.get("auth_user")
+if auth_u:
+    CONFIG["auth_user"] = auth_u
 
 
 def load_config(path: str = None):

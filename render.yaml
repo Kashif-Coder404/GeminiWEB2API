@@ -10,3 +10,7 @@ services:
         value: "1"
       - key: COOKIE
         sync: false # Render will prompt you to enter your private cookie securely in the dashboard
+      - key: XSRF_TOKEN
+        sync: false
+      - key: GEMINI_BL
+        sync: false
